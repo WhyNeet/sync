@@ -1,0 +1,8 @@
+[package]
+name = "messaging"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4.10.2"
+simplelog = "0.12.2"
