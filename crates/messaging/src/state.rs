@@ -1,10 +1,12 @@
 use scylla::client::session::Session;
+use tokio::sync::broadcast::{self, Sender};
 
 use crate::storage;
 
 #[derive(Debug)]
 pub struct AppState {
-    db: Session,
+    pub db: Session,
+    pub channel_tx: Sender<String>,
 }
 
 impl AppState {
@@ -13,10 +15,11 @@ impl AppState {
 
         storage::prepare_storage(&session).await?;
 
-        Ok(Self { db: session })
-    }
+        let (channel_tx, _) = broadcast::channel(1);
 
-    pub fn db(&self) -> &Session {
-        &self.db
+        Ok(Self {
+            db: session,
+            channel_tx,
+        })
     }
 }
