@@ -13,26 +13,40 @@ use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::{
-    message::{ChatMessage, ChatMessageInput},
+    model::message::{ChatMessage, ChatMessageInput},
     state::AppState,
 };
 
-pub async fn handle_client(
-    ws: WebSocketUpgrade,
-    State(app): State<Arc<AppState>>,
-) -> impl IntoResponse {
+pub async fn chat(ws: WebSocketUpgrade, State(app): State<Arc<AppState>>) -> impl IntoResponse {
     ws.on_upgrade(move |socket| handle_socket(socket, app))
 }
 
 async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
-    let user_id = Uuid::new_v4().to_string();
+    let user_id = Uuid::new_v4();
+
     socket
         .send(Message::text(
-            json!({ "kind": "auth", "data": user_id }).to_string(),
+            json!({ "kind": "auth", "data": user_id.to_string() }).to_string(),
         ))
         .await
         .unwrap();
-
+    let messages = app
+        .db
+        .query_unpaged(r#"SELECT * FROM ks.messages LIMIT 20"#, &[])
+        .await
+        .unwrap()
+        .into_rows_result()
+        .unwrap();
+    for row in messages.rows::<(Uuid, String, Uuid)>().unwrap() {
+        let (id, content, user_id) = row.unwrap();
+        socket
+            .send(Message::text(
+                json!({ "kind": "message", "data": ChatMessage { content, id, user_id } })
+                    .to_string(),
+            ))
+            .await
+            .unwrap();
+    }
     let (sender, mut receiver) = socket.split();
 
     let sender = Arc::new(Mutex::new(sender));
@@ -62,12 +76,20 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
                     continue;
                 };
 
+            let msg = ChatMessage {
+                id: Uuid::new_v4(),
+                content: msg_contents.content,
+                user_id: user_id.clone(),
+            };
+
+            app_tx.channel_tx.send(msg.clone()).unwrap();
             app_tx
-                .channel_tx
-                .send(ChatMessage {
-                    content: msg_contents.content,
-                    user_id: user_id.clone(),
-                })
+                .db
+                .query_unpaged(
+                    r#"INSERT INTO ks.messages (id, content, user_id) VALUES (?, ?, ?)"#,
+                    (msg.id, msg.content, msg.user_id),
+                )
+                .await
                 .unwrap();
         }
     });

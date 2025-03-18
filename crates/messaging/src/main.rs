@@ -1,18 +1,11 @@
 use std::sync::Arc;
 
-use axum::{Router, http::Request, routing::any};
-use messaging::{handler, state::AppState};
+use axum::{Router, routing::any};
+use messaging::{handlers, state::AppState};
 use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{Level, Span, level_filters::LevelFilter, subscriber};
-use tracing_appender::non_blocking;
-use tracing_subscriber::{
-    EnvFilter,
-    filter::Directive,
-    fmt::Layer,
-    layer::{Layered, SubscriberExt},
-    util::SubscriberInitExt,
-};
+use tracing::{Level, level_filters::LevelFilter};
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -34,10 +27,9 @@ async fn main() -> std::io::Result<()> {
 
     #[cfg(not(debug_assertions))]
     let file_layer = {
-        let file_appender = tracing_appender::rolling::daily(".log", "messaging.log"); // Logs will be written to `logs/app.log`
+        let file_appender = tracing_appender::rolling::daily(".log", "messaging.log");
         let (non_blocking_appender, _guard) = non_blocking(file_appender);
 
-        // Create a subscriber for the file
         let file_layer: Layer<
             Layered<
                 Layer<
@@ -58,16 +50,14 @@ async fn main() -> std::io::Result<()> {
         file_layer
     };
 
-    // Create a subscriber for stdout
     let stdout_layer = tracing_subscriber::fmt::layer().pretty();
 
-    // Combine both layers into a single subscriber
     let subscriber = tracing_subscriber::registry()
         .with(
             EnvFilter::builder()
                 .with_default_directive(LevelFilter::INFO.into())
                 .from_env_lossy(),
-        ) // Use RUST_LOG env variable for filtering
+        )
         .with(stdout_layer);
 
     #[cfg(not(debug_assertions))]
@@ -78,7 +68,7 @@ async fn main() -> std::io::Result<()> {
     let app_state = AppState::new().await.unwrap();
 
     let app = Router::new()
-        .route("/chat", any(handler::handle_client))
+        .route("/chat", any(handlers::chat))
         .with_state(Arc::new(app_state))
         .layer(
             TraceLayer::new_for_http().make_span_with(

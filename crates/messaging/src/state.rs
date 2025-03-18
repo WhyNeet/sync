@@ -1,7 +1,7 @@
 use scylla::client::session::Session;
 use tokio::sync::broadcast::{self, Sender};
 
-use crate::{message::ChatMessage, storage};
+use crate::{model::message::ChatMessage, storage};
 
 #[derive(Debug)]
 pub struct AppState {

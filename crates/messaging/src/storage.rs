@@ -19,7 +19,8 @@ pub async fn prepare_storage(session: &Session) -> Result<(), Box<dyn std::error
             r#"
       CREATE TABLE IF NOT EXISTS ks.messages (
         id uuid PRIMARY KEY,
-        contents text
+        content text,
+        user_id uuid
       )
     "#,
             &[],
