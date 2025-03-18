@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@rpm-state/core": "^0.0.4",
+    "@rpm-state/react": "^0.0.1",
     "@tailwindcss/vite": "^4.0.14",
     "@tanstack/react-router": "^1.114.22",
     "react": "^19.0.0",
