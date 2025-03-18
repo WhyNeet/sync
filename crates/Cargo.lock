@@ -707,11 +707,14 @@ dependencies = [
  "flume",
  "futures",
  "scylla",
+ "serde",
+ "serde_json",
  "tokio",
  "tower-http",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
