@@ -8,8 +8,6 @@ export const close = pipeline();
 export const send = pipeline<string>();
 export const receive = pipeline<WsMessage>();
 
-receive.subscribe(console.log)
-
 $ws.on(connect, (state, uri) => {
   if (state) {
     console.warn("[ws] cannot open connection: already established.");
@@ -19,7 +17,6 @@ $ws.on(connect, (state, uri) => {
 
   ws.addEventListener("message", ev => {
     const data = JSON.parse(ev.data);
-    console.log("got:", data)
     receive(data);
   });
 

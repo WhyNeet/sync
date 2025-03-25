@@ -1,27 +1,20 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { RouterProvider } from "react-router"
+import router from './router'
+import { Theme } from '@chakra-ui/react'
+import { Provider } from './components/ui/provider'
 
-// Import the generated route tree
-import { routeTree } from './routeTree.gen'
-
-// Create a new router instance
-const router = createRouter({ routeTree })
-
-// Register the router instance for type safety
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router
-  }
-}
-
-// Render the app
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <RouterProvider router={router} />
+      <Provider>
+        <Theme appearance='light'>
+          <RouterProvider router={router} />
+        </Theme>
+      </Provider>
     </StrictMode>,
   )
 }
