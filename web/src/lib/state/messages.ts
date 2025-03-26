@@ -7,8 +7,8 @@ export const $messages = store({
 })
 
 export const receive: Pipeline<Message> = wsReceive.filter(message => message.kind === "message").map(message => (message.data as Message));
-export const send = pipeline<string>();
-const sendMessage: Pipeline<CreateMessagePayload> = send.map(content => ({ content }))
+export const send = pipeline<string>().map(msg => msg.trim()).filter(msg => msg.length > 0);
+const sendMessage: Pipeline<CreateMessagePayload> = send.map(content => ({ content }));
 
 const publishMessage = effect<CreateMessagePayload>((msg) => sendWs(JSON.stringify(msg)));
 publishMessage(sendMessage);

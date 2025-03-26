@@ -4,6 +4,8 @@ import { RouterProvider } from "react-router"
 import router from './router'
 import { Theme } from '@chakra-ui/react'
 import { Provider } from './components/ui/provider'
+import { Toaster } from './components/ui/toaster'
+import "./lib/state/error"
 
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
@@ -12,6 +14,7 @@ if (!rootElement.innerHTML) {
     <StrictMode>
       <Provider>
         <Theme appearance='light'>
+          <Toaster />
           <RouterProvider router={router} />
         </Theme>
       </Provider>
