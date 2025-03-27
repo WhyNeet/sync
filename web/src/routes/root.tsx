@@ -1,9 +1,8 @@
-import '@fontsource-variable/dm-sans';
+import { Container } from '@mui/material';
 import { Outlet } from 'react-router';
-import { Container } from '@chakra-ui/react';
 
 export const Root = () => {
-  return <Container h="100vh" w="100vw" bg="white">
+  return <Container maxWidth="lg" sx={{ height: "100vh" }}>
     <Outlet />
   </Container>
 }

@@ -1,7 +1,7 @@
-import { Card } from "@chakra-ui/react";
+import { Paper } from "@mui/material";
 
 export function Message({ text }: { text: string }) {
-  return <Card.Root w="fit" size="sm" borderRadius="lg">
-    <Card.Body >{text}</Card.Body>
-  </Card.Root>
+  return <Paper>
+    {text}
+  </Paper>
 }

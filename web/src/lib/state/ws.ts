@@ -3,12 +3,12 @@ import { WsMessage } from "../model/conn";
 
 const $ws = store<WebSocket | null>(null);
 
-export const connect = pipeline<string>();
-export const close = pipeline();
-export const send = pipeline<string>();
-export const receive = pipeline<WsMessage>();
+export const connectWs = pipeline<string>();
+export const closeWs = pipeline();
+export const sendWs = pipeline<string>();
+export const receiveWs = pipeline<WsMessage>();
 
-$ws.on(connect, (state, uri) => {
+$ws.on(connectWs, (state, uri) => {
   if (state) {
     console.warn("[ws] cannot open connection: already established.");
     return state;
@@ -17,19 +17,19 @@ $ws.on(connect, (state, uri) => {
 
   ws.addEventListener("message", ev => {
     const data = JSON.parse(ev.data);
-    receive(data);
+    receiveWs(data);
   });
 
   return ws;
 });
 
-$ws.on(close, (ws) => {
+$ws.on(closeWs, (ws) => {
   if (!ws) throw new Error("[ws] cannot close connection: not established.");
   ws.close();
   return null;
 })
 
-$ws.on(send, (ws, message) => {
+$ws.on(sendWs, (ws, message) => {
   if (!ws) throw new Error("[ws] cannot send over connection: not established.");
   ws.send(message);
   return ws;

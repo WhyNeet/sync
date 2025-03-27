@@ -1,26 +1,25 @@
 import { useEffect, useState } from 'react';
 import { $messages, send } from '../lib/state/messages';
 import { useStore } from '@rpm-state/react';
-import { connect } from '../lib/state/ws';
+import { connectWs } from '../lib/state/ws';
 import { Message } from '../components/message';
-import { Button, Flex, Stack, Textarea } from '@chakra-ui/react';
-
+import { Button, Stack, TextField } from '@mui/material';
 
 export function Messages() {
   const messages = useStore($messages);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    connect(`ws://${import.meta.env.VITE_DEV_APP_SERVER_URI}/chat`);
+    connectWs(`ws://${import.meta.env.VITE_DEV_APP_SERVER_URI}/chat`);
   }, [])
 
-  return <Stack h="full">
-    <Stack h="full" overflow="scroll" gap="1" py="1">
-      {messages.messages.map((msg, idx) => <Message key={idx} text={msg.content} />)}
+  return <Stack sx={{ height: "100%" }}>
+    <Stack overflow="scroll" spacing="1" sx={{ height: "100%" }}>
+      {messages.messages.map((msg) => <Message key={msg.id} text={msg.content} />)}
     </Stack>
-    <Flex gap="1" pb="1">
-      <Textarea resize="none" placeholder='Type a message...' borderRadius="lg" value={message} onChange={e => setMessage(e.currentTarget.value)} />
-      <Button onClick={() => { send(message); setMessage(""); }} borderRadius="lg">Send</Button>
-    </Flex>
+    <Stack direction="row" gap="1" pb="1">
+      <TextField multiline placeholder='Type a message...' value={message} onChange={e => setMessage(e.currentTarget.value)} fullWidth />
+      <Button onClick={() => { send(message); setMessage(""); }}>Send</Button>
+    </Stack>
   </Stack>
 }
