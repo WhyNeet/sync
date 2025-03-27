@@ -7,13 +7,15 @@ use axum::{
     },
     response::IntoResponse,
 };
+use chrono::DateTime;
 use futures::{SinkExt, StreamExt};
+use scylla::value::CqlTimeuuid;
 use serde_json::json;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::{
-    model::message::{ChatMessage, ChatMessageInput},
+    model::message::{ChatMessage, ChatMessageInput, MessagePayload},
     state::AppState,
 };
 
@@ -22,6 +24,7 @@ pub async fn chat(ws: WebSocketUpgrade, State(app): State<Arc<AppState>>) -> imp
 }
 
 async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
+    let chat_id = Uuid::parse_str("c271f73c-1c05-4d74-ba4a-d3a3840a7069").unwrap();
     let user_id = Uuid::new_v4();
 
     socket
@@ -37,16 +40,26 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
         .unwrap()
         .into_rows_result()
         .unwrap();
-    for row in messages.rows::<(Uuid, String, Uuid)>().unwrap() {
-        let (id, content, user_id) = row.unwrap();
-        socket
-            .send(Message::text(
-                json!({ "kind": "message", "data": ChatMessage { content, id, user_id } })
-                    .to_string(),
-            ))
-            .await
-            .unwrap();
-    }
+    let messages = messages
+        .rows::<ChatMessage>()
+        .unwrap()
+        .map(|row| row.unwrap())
+        .map(|message| MessagePayload {
+            content: message.content,
+            id: {
+                let (s, ns) = message.id.as_ref().get_timestamp().unwrap().to_unix();
+                DateTime::from_timestamp(s as i64, ns).unwrap().to_rfc3339()
+            },
+            user_id,
+            chat_id: message.chat_id.to_string(),
+        })
+        .collect::<Vec<MessagePayload>>();
+    socket
+        .send(Message::text(
+            json!({ "kind": "messages", "data": messages }).to_string(),
+        ))
+        .await
+        .unwrap();
     let (sender, mut receiver) = socket.split();
 
     let sender = Arc::new(Mutex::new(sender));
@@ -76,18 +89,35 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
                     continue;
                 };
 
+            if msg_contents.content.is_empty() {
+                rx_sender
+                    .lock()
+                    .await
+                    .send(Message::text(
+                        json!({ "data": "Message cannot be empty.", "kind": "error" }).to_string(),
+                    ))
+                    .await
+                    .unwrap();
+                continue;
+            }
+
+            let timeuuid = CqlTimeuuid::from(Uuid::now_v1(
+                &mac_address::get_mac_address().unwrap().unwrap().bytes(),
+            ));
+
             let msg = ChatMessage {
-                id: Uuid::new_v4(),
-                content: msg_contents.content,
+                id: timeuuid,
+                content: msg_contents.content.clone(),
                 user_id: user_id.clone(),
+                chat_id,
             };
 
             app_tx.channel_tx.send(msg.clone()).unwrap();
             app_tx
                 .db
                 .query_unpaged(
-                    r#"INSERT INTO ks.messages (id, content, user_id) VALUES (?, ?, ?)"#,
-                    (msg.id, msg.content, msg.user_id),
+                    r#"INSERT INTO ks.messages (id, content, user_id, chat_id) VALUES (?, ?, ?, ?)"#,
+                    msg,
                 )
                 .await
                 .unwrap();
@@ -96,12 +126,12 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
 
     let mut recv_task = tokio::spawn(async move {
         let mut rx = app.channel_tx.subscribe();
-        while let Ok(msg) = rx.recv().await {
+        while let Ok(message) = rx.recv().await {
             sender
                 .lock()
                 .await
                 .send(Message::text(
-                    json!({ "kind": "message", "data": msg }).to_string(),
+                    json!({ "kind": "message", "data": MessagePayload { content: message.content, id: message.id.to_string(), user_id, chat_id: message.chat_id.to_string() } }).to_string(),
                 ))
                 .await
                 .unwrap();

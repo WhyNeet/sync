@@ -18,10 +18,12 @@ pub async fn prepare_storage(session: &Session) -> Result<(), Box<dyn std::error
         .query_unpaged(
             r#"
       CREATE TABLE IF NOT EXISTS ks.messages (
-        id uuid PRIMARY KEY,
+        id timeuuid,
+        chat_id uuid,
         content text,
-        user_id uuid
-      )
+        user_id uuid,
+        PRIMARY KEY ((chat_id), id)
+      ) WITH CLUSTERING ORDER BY (id DESC)
     "#,
             &[],
         )
