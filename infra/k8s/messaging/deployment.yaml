@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging-service
+spec:
+  selector:
+    app: messaging-deployment
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging-deployment
+spec:
+  selector:
+    matchLabels:
+      app: messaging-deployment
+  template:
+    metadata:
+      labels:
+        app: messaging-deployment
+    spec:
+      containers:
+        - name: messaging-deployment
+          image: wneet/sync-messaging:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SCYLLA_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-config
+                  key: scylla.uri
