@@ -4,6 +4,7 @@ use scylla::client::{session::Session, session_builder::SessionBuilder};
 
 pub async fn create_session() -> Result<Session, Box<dyn std::error::Error>> {
     let uri = env::var("SCYLLA_URI")?;
+    tracing::info!("connecting to scylla at: \"{uri}\"");
     let session = SessionBuilder::new().known_node(uri).build().await?;
 
     Ok(session)

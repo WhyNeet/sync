@@ -131,7 +131,10 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
                 .lock()
                 .await
                 .send(Message::text(
-                    json!({ "kind": "message", "data": MessagePayload { content: message.content, id: message.id.to_string(), user_id, chat_id: message.chat_id.to_string() } }).to_string(),
+                    json!({ "kind": "message", "data": MessagePayload { content: message.content, id: {
+                      let (s, ns) = message.id.as_ref().get_timestamp().unwrap().to_unix();
+                      DateTime::from_timestamp(s as i64, ns).unwrap().to_rfc3339()
+                  }, user_id, chat_id: message.chat_id.to_string() } }).to_string(),
                 ))
                 .await
                 .unwrap();
