@@ -4,4 +4,15 @@ import react from '@vitejs/plugin-react-swc'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (/env.ts/.test(id)) {
+            return "env";
+          }
+        }
+      }
+    }
+  }
 })

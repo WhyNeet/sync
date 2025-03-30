@@ -1,4 +1,4 @@
-import { receive as receiveWs } from "./ws";
+import { receiveWs } from "./ws";
 import { store } from "@rpm-state/core";
 
 export const $user = store<{ uuid: string | null }>({

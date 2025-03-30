@@ -4,13 +4,16 @@ import { useStore } from '@rpm-state/react';
 import { connectWs } from '../lib/state/ws';
 import { Message } from '../components/message';
 import { Button, Stack, TextField } from '@mui/material';
+import { env } from '../lib/env';
+
+const VITE_APP_URI = env().VITE_APP_URI;
 
 export function Messages() {
   const messages = useStore($messages);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    connectWs(`ws://${import.meta.env.VITE_DEV_APP_SERVER_URI}/chat`);
+    connectWs(`ws://${VITE_APP_URI}/messaging/chat`);
   }, [])
 
   return <Stack sx={{ height: "100%" }}>
