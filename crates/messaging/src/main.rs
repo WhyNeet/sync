@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use axum::{Router, routing::any};
+use axum::{
+    Router,
+    routing::{any, get},
+};
 use messaging::{handlers, state::AppState};
 use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
@@ -54,6 +57,7 @@ async fn main() -> std::io::Result<()> {
 
     let app = Router::new()
         .route("/chat", any(handlers::chat))
+        .route("/health", get(handlers::healthcheck))
         .with_state(Arc::new(app_state))
         .layer(
             TraceLayer::new_for_http().make_span_with(
@@ -63,7 +67,7 @@ async fn main() -> std::io::Result<()> {
             ),
         );
 
-    let listener = TcpListener::bind("127.0.0.1:8080").await?;
+    let listener = TcpListener::bind("0.0.0.0:8080").await?;
 
     tracing::info!("starting server...");
 
