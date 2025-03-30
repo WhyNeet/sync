@@ -14,8 +14,8 @@ export function Messages() {
   }, [])
 
   return <Stack sx={{ height: "100%" }}>
-    <Stack overflow="scroll" spacing="1" sx={{ height: "100%" }}>
-      {messages.messages.map((msg) => <Message key={msg.id} text={msg.content} />)}
+    <Stack spacing="1rem" sx={{ height: "100%", p: "1rem", overflowY: "scroll", overflowX: "visible" }}>
+      {messages.messages.map((msg) => <Message key={msg.id} message={msg} />)}
     </Stack>
     <Stack direction="row" gap="1" pb="1">
       <TextField multiline placeholder='Type a message...' value={message} onChange={e => setMessage(e.currentTarget.value)} fullWidth />
