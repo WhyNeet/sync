@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-messaging
+  namespace: apps
+  labels:
+    name: ingress-messaging
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: localhost.com
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /messaging(/|$)(.*)
+            backend:
+              service:
+                name: messaging-service
+                port:
+                  number: 8080
