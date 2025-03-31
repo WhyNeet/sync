@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: messaging-service
-  namespace: apps
+  namespace: messaging
 spec:
   selector:
     app: messaging-deployment
@@ -14,7 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: messaging-deployment
-  namespace: apps
+  namespace: messaging
 spec:
   selector:
     matchLabels:

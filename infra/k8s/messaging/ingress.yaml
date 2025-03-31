@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress-messaging
-  namespace: apps
+  namespace: messaging
   labels:
     name: ingress-messaging
   annotations:

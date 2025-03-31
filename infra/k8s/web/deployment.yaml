@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: web
-  namespace: apps
+  namespace: web
 spec:
   selector:
     app: web
@@ -14,7 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web
-  namespace: apps
+  namespace: web
 spec:
   selector:
     matchLabels:
