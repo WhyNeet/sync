@@ -56,8 +56,8 @@ async fn main() -> std::io::Result<()> {
 
     let app = Router::new()
         .route("/chat", any(handlers::chat))
-        .route("/health", get(handlers::healthcheck))
         .with_state(Arc::new(app_state))
+        .nest("/", common::handlers::default_router())
         .layer(
             TraceLayer::new_for_http().make_span_with(
                 DefaultMakeSpan::default()
