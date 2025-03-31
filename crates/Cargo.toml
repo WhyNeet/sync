@@ -1,3 +1,3 @@
 [workspace]
-members = ["messaging"]
+members = [ "auth", "common","messaging", "users"]
 resolver = "3"
