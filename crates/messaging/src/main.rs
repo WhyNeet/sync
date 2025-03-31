@@ -22,20 +22,19 @@ async fn main() -> std::io::Result<()> {
         if !std::fs::exists(".log")? {
             std::fs::create_dir(".log")?;
         }
-        std::fs::File::options()
-            .append(true)
-            .create(true)
-            .open(".log/messaging.log")?
     };
 
     #[cfg(not(debug_assertions))]
-    let file_layer = {
+    let (file_layer, _guard) = {
         let file_appender = tracing_appender::rolling::daily(".log", "messaging.log");
-        let (non_blocking_appender, _guard) = tracing_appender::non_blocking(file_appender);
+        let (non_blocking_appender, guard) = tracing_appender::non_blocking(file_appender);
 
-        tracing_subscriber::fmt::layer()
-            .with_writer(non_blocking_appender)
-            .with_ansi(false)
+        (
+            tracing_subscriber::fmt::layer()
+                .with_writer(non_blocking_appender)
+                .with_ansi(false),
+            guard,
+        )
     };
 
     let stdout_layer = tracing_subscriber::fmt::layer().pretty();
