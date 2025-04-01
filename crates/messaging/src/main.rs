@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use axum::{
-    Router,
-    routing::{any, get},
-};
+use axum::{Router, routing::any};
 use messaging::{handlers, state::AppState};
 use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
@@ -57,7 +54,7 @@ async fn main() -> std::io::Result<()> {
     let app = Router::new()
         .route("/chat", any(handlers::chat))
         .with_state(Arc::new(app_state))
-        .nest("/", common::handlers::default_router())
+        .merge(common::handlers::default_router())
         .layer(
             TraceLayer::new_for_http().make_span_with(
                 DefaultMakeSpan::default()
