@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = { version = "0.8.1" }
+axum = { version = "0.8.1", features = ["macros"] }
 mac_address = "1.1.8"
 scylla = { version = "1.0.0" }
 serde = { version = "1.0.219", features = ["derive"] }
@@ -16,3 +16,4 @@ tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 uuid = { version = "1.16.0", features = ["serde"] }
 common = { path = "../common" }
+argon2 = { version = "0.5.3", features = ["std"] }

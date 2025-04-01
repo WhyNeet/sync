@@ -5,7 +5,7 @@ use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{Level, level_filters::LevelFilter};
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
-use users::state::AppState;
+use users::{handlers, state::AppState};
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -52,8 +52,9 @@ async fn main() -> std::io::Result<()> {
     let app_state = AppState::new().await.unwrap();
 
     let app = Router::new()
+        .merge(common::handlers::default_router())
+        .merge(handlers::auth::router())
         .with_state(Arc::new(app_state))
-        .nest("/", common::handlers::default_router())
         .layer(
             TraceLayer::new_for_http().make_span_with(
                 DefaultMakeSpan::default()
