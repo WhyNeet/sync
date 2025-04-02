@@ -16,4 +16,6 @@ tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 uuid = { version = "1.16.0", features = ["serde"] }
 common = { path = "../common" }
-argon2 = { version = "0.5.3", features = ["std"] }
+auth = { path = "../auth" }
+axum-extra = { version = "0.10.1", features = ["cookie"] }
+cookie = "0.18.1"

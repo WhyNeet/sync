@@ -1,10 +1,7 @@
 use std::sync::Arc;
 
-use argon2::{
-    Argon2, Params,
-    password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
-};
-use axum::{Json, extract::State, response::IntoResponse};
+use auth::hashing::{Hasher, initialize_hasher};
+use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use serde_json::json;
 use uuid::Uuid;
 
@@ -18,8 +15,12 @@ pub async fn handler(
     Json(payload): Json<CreateUserPayload>,
 ) -> impl IntoResponse {
     if payload.password.len() < 8 {
-        return json!({ "kind": "error", "data": "Password must contain at least 8 characters." })
-            .to_string();
+        return (
+            StatusCode::BAD_REQUEST,
+            json!({ "kind": "error", "data": "Password must contain at least 8 characters." })
+                .to_string(),
+        )
+            .into_response();
     }
 
     let username_check = state
@@ -36,7 +37,11 @@ pub async fn handler(
         .first_row::<(i64,)>()
         .unwrap();
     if username_check.0 != 0 {
-        return json!({ "kind": "error", "data": "Username already exists." }).to_string();
+        return (
+            StatusCode::BAD_REQUEST,
+            json!({ "kind": "error", "data": "Username already exists." }).to_string(),
+        )
+            .into_response();
     }
 
     let user = User {
@@ -45,18 +50,9 @@ pub async fn handler(
         display_name: payload.display_name,
         email: payload.email,
         username: payload.username,
-        password: {
-            let salt = SaltString::generate(&mut OsRng);
-            let argon2 = Argon2::new(
-                argon2::Algorithm::Argon2id,
-                argon2::Version::V0x13,
-                Params::new(7168, 5, 1, None).unwrap(),
-            );
-            argon2
-                .hash_password(payload.password.as_bytes(), &salt)
-                .unwrap()
-                .to_string()
-        },
+        password: initialize_hasher()
+            .hash_str(payload.password.as_bytes())
+            .unwrap(),
     };
 
     let payload = UserPayload::from_user(&user);
@@ -69,7 +65,12 @@ pub async fn handler(
         )
         .await
         .unwrap();
-    state.db.query_unpaged(r#"INSERT INTO ks.users (id, email, avatar_id, display_name, password, username) VALUES (?, ?, ?, ?, ?, ?)"#, user).await.unwrap();
+    state.db.query_unpaged(r#"INSERT INTO ks.users (id, email, avatar_id, display_name, password, username) VALUES (?, ?, ?, ?, ?, ?)"#, &user).await.unwrap();
 
-    json!({ "data": payload }).to_string()
+    (
+        StatusCode::CREATED,
+        // cookies.add(at_cookie).add(rt_cookie),
+        json!({ "data": payload }).to_string(),
+    )
+        .into_response()
 }

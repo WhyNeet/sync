@@ -11,7 +11,15 @@ use users::{handlers, state::AppState};
 async fn main() -> std::io::Result<()> {
     #[cfg(debug_assertions)]
     {
-        unsafe { std::env::set_var("SCYLLA_URI", "127.0.0.1:9042") };
+        unsafe {
+            std::env::set_var("SCYLLA_URI", "127.0.0.1:9042");
+            std::env::set_var(
+                "SECRET_JWT_SIGNING_KEY",
+                "OX0w0kHPRcxE3oD1Y2vw0Kfa8ZYLvgDt2oq/78yJFYJBev2uiuAKyKUrQgUP94UppV33bm+DKLYpDcFhwBE6UA==",
+            );
+            std::env::set_var("JWT_AT_LIFETIME", "3600");
+            std::env::set_var("JWT_RT_LIFETIME", "2629800");
+        };
     };
 
     #[cfg(not(debug_assertions))]
