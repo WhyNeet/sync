@@ -73,6 +73,7 @@ async fn main() -> std::io::Result<()> {
     let app = Router::new()
         .merge(common::handlers::default_router())
         .merge(handlers::auth::router())
+        .merge(handlers::users::router())
         .with_state(Arc::new(app_state))
         .layer(
             TraceLayer::new_for_http().make_span_with(
