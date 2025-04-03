@@ -1,3 +1,3 @@
 pub mod hashing;
-pub mod token;
+pub mod session;
 pub mod util;
