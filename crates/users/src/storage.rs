@@ -45,5 +45,16 @@ pub async fn prepare_storage(session: &Session) -> Result<(), Box<dyn std::error
         )
         .await?;
 
+    session
+        .query_unpaged(
+            r#"CREATE TABLE IF NOT EXISTS ks.sessions (
+        id uuid,
+        user_id uuid,
+        PRIMARY KEY (id)
+      )"#,
+            &[],
+        )
+        .await?;
+
     Ok(())
 }

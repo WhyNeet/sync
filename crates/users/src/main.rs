@@ -1,6 +1,9 @@
-use std::sync::Arc;
+use std::{env, sync::Arc};
 
-use axum::Router;
+use auth::session::store::{
+    SessionManager, impls::scylla::ScyllaSessionStore, integration::axum::session_middleware,
+};
+use axum::{Extension, Router, middleware};
 use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{Level, level_filters::LevelFilter};
@@ -14,11 +17,9 @@ async fn main() -> std::io::Result<()> {
         unsafe {
             std::env::set_var("SCYLLA_URI", "127.0.0.1:9042");
             std::env::set_var(
-                "SECRET_JWT_SIGNING_KEY",
+                "SESSION_SIGNING_KEY",
                 "OX0w0kHPRcxE3oD1Y2vw0Kfa8ZYLvgDt2oq/78yJFYJBev2uiuAKyKUrQgUP94UppV33bm+DKLYpDcFhwBE6UA==",
             );
-            std::env::set_var("JWT_AT_LIFETIME", "3600");
-            std::env::set_var("JWT_RT_LIFETIME", "2629800");
         };
     };
 
@@ -31,7 +32,7 @@ async fn main() -> std::io::Result<()> {
 
     #[cfg(not(debug_assertions))]
     let (file_layer, _guard) = {
-        let file_appender = tracing_appender::rolling::daily(".log", "messaging.log");
+        let file_appender = tracing_appender::rolling::daily(".log", "users.log");
         let (non_blocking_appender, guard) = tracing_appender::non_blocking(file_appender);
 
         (
@@ -58,6 +59,16 @@ async fn main() -> std::io::Result<()> {
     subscriber.init();
 
     let app_state = AppState::new().await.unwrap();
+    let session_manager = Arc::new(SessionManager::new(
+        ScyllaSessionStore::new(
+            Arc::clone(&app_state.db),
+            "ks".to_string(),
+            "sessions".to_string(),
+        )
+        .await
+        .unwrap(),
+        env::var("SESSION_SIGNING_KEY").unwrap().as_bytes(),
+    ));
 
     let app = Router::new()
         .merge(common::handlers::default_router())
@@ -69,7 +80,11 @@ async fn main() -> std::io::Result<()> {
                     .include_headers(true)
                     .level(Level::DEBUG),
             ),
-        );
+        )
+        .layer(middleware::from_fn(
+            session_middleware::<ScyllaSessionStore>,
+        ))
+        .layer(Extension(session_manager));
 
     let listener = TcpListener::bind("0.0.0.0:8080").await?;
 

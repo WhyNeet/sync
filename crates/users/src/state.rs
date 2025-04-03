@@ -1,10 +1,12 @@
+use std::sync::Arc;
+
 use scylla::client::session::Session;
 
 use crate::storage;
 
 #[derive(Debug)]
 pub struct AppState {
-    pub db: Session,
+    pub db: Arc<Session>,
 }
 
 impl AppState {
@@ -13,6 +15,8 @@ impl AppState {
 
         storage::prepare_storage(&session).await?;
 
-        Ok(Self { db: session })
+        Ok(Self {
+            db: Arc::new(session),
+        })
     }
 }
