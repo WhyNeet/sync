@@ -17,36 +17,6 @@ pub async fn prepare_storage(session: &Session) -> Result<(), Box<dyn std::error
 
     session
         .query_unpaged(
-            r#"
-      CREATE TABLE IF NOT EXISTS ks.users (
-        id uuid,
-        username text,
-        email text,
-        password text,
-        display_name text,
-        avatar_id uuid,
-        PRIMARY KEY (id)
-      )
-    "#,
-            &[],
-        )
-        .await?;
-
-    session
-        .query_unpaged(
-            r#"
-      CREATE TABLE IF NOT EXISTS ks.users_by_username (
-        id uuid,
-        username text,
-        PRIMARY KEY (username)
-      )
-    "#,
-            &[],
-        )
-        .await?;
-
-    session
-        .query_unpaged(
             r#"CREATE TABLE IF NOT EXISTS ks.sessions (
         id uuid,
         user_id uuid,

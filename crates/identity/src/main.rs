@@ -15,11 +15,12 @@ async fn main() -> std::io::Result<()> {
     #[cfg(debug_assertions)]
     {
         unsafe {
-            std::env::set_var("SCYLLA_URI", "127.0.0.1:9042");
+            std::env::set_var("SCYLLA_URI", "127.0.0.1:9043");
             std::env::set_var(
                 "SESSION_SIGNING_KEY",
                 "OX0w0kHPRcxE3oD1Y2vw0Kfa8ZYLvgDt2oq/78yJFYJBev2uiuAKyKUrQgUP94UppV33bm+DKLYpDcFhwBE6UA==",
             );
+            std::env::set_var("USERS_SERVICE_URI", "http://localhost:8080");
         };
     };
 
@@ -32,7 +33,7 @@ async fn main() -> std::io::Result<()> {
 
     #[cfg(not(debug_assertions))]
     let (file_layer, _guard) = {
-        let file_appender = tracing_appender::rolling::daily(".log", "users.log");
+        let file_appender = tracing_appender::rolling::daily(".log", "identity.log");
         let (non_blocking_appender, guard) = tracing_appender::non_blocking(file_appender);
 
         (
@@ -73,7 +74,6 @@ async fn main() -> std::io::Result<()> {
     let app = Router::new()
         .merge(common::handlers::default_router())
         .merge(handlers::auth::router())
-        .merge(handlers::users::router())
         .with_state(Arc::new(app_state))
         .layer(
             TraceLayer::new_for_http().make_span_with(
@@ -87,7 +87,13 @@ async fn main() -> std::io::Result<()> {
         ))
         .layer(Extension(session_manager));
 
-    let listener = TcpListener::bind("0.0.0.0:8080").await?;
+    let listener = TcpListener::bind(
+        #[cfg(not(debug_assertions))]
+        "0.0.0.0:8080",
+        #[cfg(debug_assertions)]
+        "0.0.0.0:8081",
+    )
+    .await?;
 
     tracing::info!("starting server...");
 
