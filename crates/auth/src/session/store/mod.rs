@@ -6,7 +6,7 @@ use cookie::{Cookie, SameSite, time::Duration};
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
-use std::error::Error;
+use std::{error::Error, str::FromStr};
 
 use uuid::Uuid;
 
@@ -90,12 +90,23 @@ impl<S: SessionStore> SessionManager<S> {
         Ok(self.build_cookie(&session_id.to_string(), &signature))
     }
 
-    pub async fn load_session(&self, sid: &str) -> Result<String, Box<dyn Error>> {
+    pub async fn load_session(&self, sid: &str) -> Result<SessionData, Box<dyn Error>> {
         let (session_id, signature) = sid.split_once('.').ok_or("invalid session id.")?;
         if !self.verify(session_id, signature) {
             return Err("invalid signature.".into());
         }
 
-        Ok(session_id.to_string())
+        let session_id = Uuid::from_str(session_id)?;
+
+        self.store.load(&session_id).await
+    }
+
+    pub async fn load_session_unverified(
+        &self,
+        session_id: &str,
+    ) -> Result<SessionData, Box<dyn Error>> {
+        let session_id = Uuid::from_str(session_id)?;
+
+        self.store.load(&session_id).await
     }
 }

@@ -14,11 +14,8 @@ use crate::session::{
     store::{SessionManager, SessionStore},
 };
 
-pub type SessionId = String;
-
-// --- Extractor to get session data in handlers ---
 #[derive(Debug, Clone)]
-pub struct Session(pub SessionData); // Wrap the actual data
+pub struct Session(pub SessionData);
 
 impl<S> FromRequestParts<S> for Session
 where
@@ -45,9 +42,8 @@ pub async fn session_middleware<Store: SessionStore>(
     mut request: Request,
     next: Next,
 ) -> Response {
-    let mut session_id: Option<SessionId> = None;
+    let mut session: Option<SessionData> = None;
 
-    // 1. Try to load session from request cookie
     let cookies = request
         .headers()
         .get_all(header::COOKIE)
@@ -58,17 +54,11 @@ pub async fn session_middleware<Store: SessionStore>(
 
     if let Some(cookie_header) = cookies.iter().find(|c| c.name() == "sid") {
         let sid = cookie_header.value();
-        let Ok(sid) = session_manager.load_session(sid).await else {
-            return Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body("invalid session id.".into())
-                .unwrap();
-        };
-        session_id = Some(sid);
+        session = session_manager.load_session(sid).await.ok();
     } else {
     }
 
-    request.extensions_mut().insert(session_id);
+    request.extensions_mut().insert(session);
 
     let response = next.run(request).await;
 
