@@ -4,11 +4,11 @@ use auth::session::store::{
     SessionManager, impls::scylla::ScyllaSessionStore, integration::axum::session_middleware,
 };
 use axum::{Extension, Router, middleware};
+use identity::{handlers, state::AppState};
 use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{Level, level_filters::LevelFilter};
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
-use users::{handlers, state::AppState};
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {

@@ -1,11 +1,7 @@
 use std::{str::FromStr, sync::Arc};
 
 use auth::session::store::integration::axum::SessionId;
-use axum::{
-    extract::State,
-    http::{Extensions, StatusCode},
-    response::IntoResponse,
-};
+use axum::{extract::State, http::Extensions, response::IntoResponse};
 use serde_json::json;
 use uuid::Uuid;
 
