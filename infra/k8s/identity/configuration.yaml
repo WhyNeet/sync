@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: identity-config
+  namespace: identity
+data:
+  scylla.uri: identity-scylladb
+  users-service.uri: users-service.users.svc.cluster.local:8080

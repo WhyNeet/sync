@@ -2,11 +2,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: messaging-scylladb
-  namespace: messaging
+  name: identity-scylladb
+  namespace: identity
 spec:
   selector:
-    app: messaging-scylladb
+    app: identity-scylladb
   ports:
     - port: 9042
       name: scylladb
@@ -14,18 +14,18 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: messaging-scylladb
-  namespace: messaging
+  name: identity-scylladb
+  namespace: identity
 spec:
   selector:
     matchLabels:
-      app: messaging-scylladb
-  serviceName: messaging-scylladb
+      app: identity-scylladb
+  serviceName: identity-scylladb
   replicas: 1
   template:
     metadata:
       labels:
-        app: messaging-scylladb
+        app: identity-scylladb
     spec:
       containers:
         - name: scylladb
