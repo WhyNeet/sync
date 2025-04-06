@@ -5,3 +5,4 @@ metadata:
   namespace: messaging
 data:
   scylla.uri: messaging-scylladb
+  identity-provider.uri: identity-service.identity.svc.cluster.local:8080

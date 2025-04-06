@@ -40,6 +40,16 @@ spec:
                 configMapKeyRef:
                   name: messaging-config
                   key: scylla.uri
+            - name: IDENTITY_PROVIDER_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-config
+                  key: identity-provider.uri
+            - name: SESSION_SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: messaging-secret
+                  key: session.signing.key
           livenessProbe:
             httpGet:
               path: /health

@@ -46,7 +46,10 @@ spec:
                   name: users-config
                   key: identity-provider.uri
             - name: SESSION_SIGNING_KEY
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: users-secret
+                  key: session.signing.key
           livenessProbe:
             httpGet:
               path: /health
