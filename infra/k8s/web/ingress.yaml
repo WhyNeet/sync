@@ -1,10 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-web
+  name: web-ingress
   namespace: web
   labels:
-    name: ingress-web
+    name: web-ingress
 spec:
   ingressClassName: nginx
   rules:
