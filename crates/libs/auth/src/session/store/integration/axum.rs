@@ -11,11 +11,8 @@ use cookie::Cookie;
 
 use crate::session::{
     data::SessionData,
-    store::{SessionManager, SessionStore},
+    store::{Session, SessionManager, SessionStore},
 };
-
-#[derive(Debug, Clone)]
-pub struct Session(pub SessionData);
 
 impl<S> FromRequestParts<S> for Session
 where

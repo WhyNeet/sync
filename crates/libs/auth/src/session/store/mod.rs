@@ -110,3 +110,6 @@ impl<S: SessionStore> SessionManager<S> {
         self.store.load(&session_id).await
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Session(pub SessionData);

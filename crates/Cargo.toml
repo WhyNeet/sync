@@ -1,3 +1,3 @@
 [workspace]
-members = ["auth", "common", "messaging", "identity", "users"]
+members = ["libs/*", "services/*"]
 resolver = "3"

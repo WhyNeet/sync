@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use auth::session::{data::SessionData, store::integration::axum::Session};
+use auth::session::{data::SessionData, store::Session};
 use axum::{
     extract::State,
     http::{Extensions, StatusCode},
