@@ -12,8 +12,8 @@ COPY ./Cargo.toml ./Cargo.toml
 COPY ./Cargo.lock ./Cargo.lock
 
 # Initialize packages with empty entrypoints
-COPY ./services/messaging/Cargo.toml ./services/messaging/Cargo.toml
-RUN mkdir -p ./services/messaging/src && echo "fn main() {}" > services/messaging/src/main.rs
+COPY ./services/users/Cargo.toml ./services/users/Cargo.toml
+RUN mkdir -p ./services/users/src && echo "fn main() {}" > services/users/src/main.rs
 COPY ./libs/auth/Cargo.toml ./libs/auth/Cargo.toml
 RUN mkdir -p ./libs/auth/src && echo "fn main() {}" > libs/auth/src/main.rs
 COPY ./libs/common/Cargo.toml ./libs/common/Cargo.toml
@@ -36,18 +36,18 @@ RUN cargo build --package common --target aarch64-unknown-linux-musl --release
 
 # Cache binary
 # Dummy main is already present
-RUN cargo build --package messaging --target aarch64-unknown-linux-musl --release
-RUN rm services/messaging/src/main.rs
+RUN cargo build --package users --target aarch64-unknown-linux-musl --release
+RUN rm services/users/src/main.rs
 
-COPY ./services/messaging/src ./services/messaging/src
-RUN rm ./target/aarch64-unknown-linux-musl/release/messaging
-RUN cargo build --package messaging --target aarch64-unknown-linux-musl --release
+COPY ./services/users/src ./services/users/src
+RUN rm ./target/aarch64-unknown-linux-musl/release/users
+RUN cargo build --package users --target aarch64-unknown-linux-musl --release
 
 
 FROM alpine
 
-COPY --from=builder /app/target/aarch64-unknown-linux-musl/release/messaging ./
+COPY --from=builder /app/target/aarch64-unknown-linux-musl/release/users ./
 
 EXPOSE 8080
 
-CMD ["./messaging"]
+CMD ["./users"]

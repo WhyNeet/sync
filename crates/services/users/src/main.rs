@@ -1,9 +1,7 @@
 use std::{env, sync::Arc};
 
 use auth::session::store::{
-    SessionManager,
-    impls::{provider::ProviderSessionStore, scylla::ScyllaSessionStore},
-    integration::axum::session_middleware,
+    SessionManager, impls::provider::ProviderSessionStore, integration::axum::session_middleware,
 };
 use axum::{Extension, Router, middleware};
 use tokio::net::TcpListener;
@@ -18,11 +16,7 @@ async fn main() -> std::io::Result<()> {
     {
         unsafe {
             std::env::set_var("SCYLLA_URI", "127.0.0.1:9042");
-            std::env::set_var(
-                "SESSION_SIGNING_KEY",
-                "OX0w0kHPRcxE3oD1Y2vw0Kfa8ZYLvgDt2oq/78yJFYJBev2uiuAKyKUrQgUP94UppV33bm+DKLYpDcFhwBE6UA==",
-            );
-            std::env::set_var("IDENTITY_PROVIDER_URI", "http://localhost:8081");
+            std::env::set_var("IDENTITY_PROVIDER_URI", "localhost:8081");
         };
     };
 
@@ -63,7 +57,11 @@ async fn main() -> std::io::Result<()> {
 
     let app_state = AppState::new().await.unwrap();
     let session_manager = Arc::new(SessionManager::new(
-        ProviderSessionStore::new(env::var("IDENTITY_PROVIDER_URI").unwrap()).unwrap(),
+        ProviderSessionStore::new(format!(
+            "http://{}",
+            env::var("IDENTITY_PROVIDER_URI").unwrap()
+        ))
+        .unwrap(),
         env::var("SESSION_SIGNING_KEY").unwrap().as_bytes(),
     ));
 

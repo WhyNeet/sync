@@ -20,7 +20,7 @@ async fn main() -> std::io::Result<()> {
                 "SESSION_SIGNING_KEY",
                 "OX0w0kHPRcxE3oD1Y2vw0Kfa8ZYLvgDt2oq/78yJFYJBev2uiuAKyKUrQgUP94UppV33bm+DKLYpDcFhwBE6UA==",
             );
-            std::env::set_var("USERS_SERVICE_URI", "http://localhost:8080");
+            std::env::set_var("USERS_SERVICE_URI", "localhost:8080");
         };
     };
 

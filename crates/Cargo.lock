@@ -1059,6 +1059,7 @@ dependencies = [
 name = "messaging"
 version = "0.1.0"
 dependencies = [
+ "auth",
  "axum",
  "chrono",
  "common",

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use auth::session::store::Session;
 use axum::{
     extract::{
         State, WebSocketUpgrade,
@@ -19,20 +20,17 @@ use crate::{
     state::AppState,
 };
 
-pub async fn chat(ws: WebSocketUpgrade, State(app): State<Arc<AppState>>) -> impl IntoResponse {
-    ws.on_upgrade(move |socket| handle_socket(socket, app))
+pub async fn chat(
+    ws: WebSocketUpgrade,
+    State(app): State<Arc<AppState>>,
+    session: Session,
+) -> impl IntoResponse {
+    ws.on_upgrade(move |socket| handle_socket(socket, app, session))
 }
 
-async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
+async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>, session: Session) {
     let chat_id = Uuid::parse_str("c271f73c-1c05-4d74-ba4a-d3a3840a7069").unwrap();
-    let user_id = Uuid::new_v4();
 
-    socket
-        .send(Message::text(
-            json!({ "kind": "auth", "data": user_id.to_string() }).to_string(),
-        ))
-        .await
-        .unwrap();
     let messages = app
         .db
         .query_unpaged(r#"SELECT * FROM ks.messages LIMIT 20"#, &[])
@@ -50,7 +48,7 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
                 let (s, ns) = message.id.as_ref().get_timestamp().unwrap().to_unix();
                 DateTime::from_timestamp(s as i64, ns).unwrap().to_rfc3339()
             },
-            user_id,
+            user_id: message.user_id,
             chat_id: message.chat_id.to_string(),
         })
         .collect::<Vec<MessagePayload>>();
@@ -108,7 +106,7 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
             let msg = ChatMessage {
                 id: timeuuid,
                 content: msg_contents.content.clone(),
-                user_id: user_id.clone(),
+                user_id: session.0.user_id.clone(),
                 chat_id,
             };
 
@@ -134,7 +132,7 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>) {
                     json!({ "kind": "message", "data": MessagePayload { content: message.content, id: {
                       let (s, ns) = message.id.as_ref().get_timestamp().unwrap().to_unix();
                       DateTime::from_timestamp(s as i64, ns).unwrap().to_rfc3339()
-                  }, user_id, chat_id: message.chat_id.to_string() } }).to_string(),
+                  }, user_id: message.user_id, chat_id: message.chat_id.to_string() } }).to_string(),
                 ))
                 .await
                 .unwrap();

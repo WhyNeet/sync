@@ -14,7 +14,7 @@ pub async fn handler(
 ) -> impl IntoResponse {
     let user_id = reqwest::Client::new()
         .get(format!(
-            "{}/internal/user/{}",
+            "http://{}/internal/user/{}",
             env::var("USERS_SERVICE_URI").unwrap(),
             payload.username
         ))
