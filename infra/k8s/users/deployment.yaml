@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service
+  namespace: users
+spec:
+  selector:
+    app: users-deployment
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+  namespace: users
+spec:
+  selector:
+    matchLabels:
+      app: users-deployment
+  template:
+    metadata:
+      labels:
+        app: users-deployment
+    spec:
+      containers:
+        - name: users-deployment
+          image: wneet/sync-users:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SCYLLA_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: users-config
+                  key: scylla.uri
+            - name: IDENTITY_PROVIDER_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: users-config
+                  key: identity-provider.uri
+            - name: SESSION_SIGNING_KEY
+              value: ""
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 7
+            periodSeconds: 60
