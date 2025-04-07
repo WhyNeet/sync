@@ -1,10 +1,8 @@
-import { receiveWs } from "./ws";
-import { store } from "@rpm-state/core";
+import { User } from "../model/user";
+import { pipeline, store } from "@rpm-state/core";
 
-export const $user = store<{ uuid: string | null }>({
-  uuid: null
-});
+export const $user = store<User | null>(null);
 
-export const authorized = receiveWs.filter(msg => msg.kind === "auth").map(msg => msg.data as string);
+export const authorized = pipeline<User | null>();
 
-$user.on(authorized, (_, uuid) => ({ uuid }))
+$user.on(authorized, (_, user) => user)

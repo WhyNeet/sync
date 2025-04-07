@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { Root } from "./routes/root";
 import { Messages } from "./routes";
+import { SignIn } from "./routes/signin";
 
 export default createBrowserRouter([
   {
@@ -9,7 +10,11 @@ export default createBrowserRouter([
     children: [
       {
         path: "/",
-        Component: Messages
+        Component: Messages,
+      },
+      {
+        path: "/sign-in",
+        Component: SignIn
       }
     ]
   }
