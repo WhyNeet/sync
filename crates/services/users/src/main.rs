@@ -3,9 +3,19 @@ use std::{env, sync::Arc};
 use auth::session::store::{
     SessionManager, impls::provider::ProviderSessionStore, integration::axum::session_middleware,
 };
+use axum::http::{
+    HeaderValue, Method,
+    header::{
+        ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, AUTHORIZATION, CONNECTION, CONTENT_LENGTH,
+        CONTENT_TYPE, COOKIE, HOST, ORIGIN, REFERER, UPGRADE, USER_AGENT,
+    },
+};
 use axum::{Extension, Router, middleware};
 use tokio::net::TcpListener;
-use tower_http::trace::{DefaultMakeSpan, TraceLayer};
+use tower_http::{
+    cors::CorsLayer,
+    trace::{DefaultMakeSpan, TraceLayer},
+};
 use tracing::{Level, level_filters::LevelFilter};
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 use users::{handlers, state::AppState};
@@ -16,6 +26,10 @@ async fn main() -> std::io::Result<()> {
     {
         unsafe {
             std::env::set_var("SCYLLA_URI", "127.0.0.1:9042");
+            std::env::set_var(
+                "SESSION_SIGNING_KEY",
+                "OX0w0kHPRcxE3oD1Y2vw0Kfa8ZYLvgDt2oq/78yJFYJBev2uiuAKyKUrQgUP94UppV33bm+DKLYpDcFhwBE6UA==",
+            );
             std::env::set_var("IDENTITY_PROVIDER_URI", "localhost:8081");
         };
     };
@@ -55,6 +69,30 @@ async fn main() -> std::io::Result<()> {
 
     subscriber.init();
 
+    let cors_layer = CorsLayer::new()
+        .allow_origin([
+            "http://localhost:5173".parse::<HeaderValue>().unwrap(),
+            "http://localhost.com".parse::<HeaderValue>().unwrap(),
+        ])
+        .allow_credentials(true)
+        .allow_headers([
+            AUTHORIZATION,
+            COOKIE,
+            ACCEPT,
+            CONTENT_TYPE,
+            HOST,
+            USER_AGENT,
+            ACCEPT_ENCODING,
+            CONNECTION,
+            UPGRADE,
+            CONTENT_LENGTH,
+            CONNECTION,
+            ACCEPT_LANGUAGE,
+            REFERER,
+            ORIGIN,
+        ])
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS, Method::DELETE]);
+
     let app_state = AppState::new().await.unwrap();
     let session_manager = Arc::new(SessionManager::new(
         ProviderSessionStore::new(format!(
@@ -79,7 +117,8 @@ async fn main() -> std::io::Result<()> {
         .layer(middleware::from_fn(
             session_middleware::<ProviderSessionStore>,
         ))
-        .layer(Extension(session_manager));
+        .layer(Extension(session_manager))
+        .layer(cors_layer);
 
     let listener = TcpListener::bind("0.0.0.0:8080").await?;
 

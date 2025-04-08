@@ -3,10 +3,20 @@ use std::{env, sync::Arc};
 use auth::session::store::{
     SessionManager, impls::scylla::ScyllaSessionStore, integration::axum::session_middleware,
 };
-use axum::{Extension, Router, middleware};
+use axum::{Extension, Router, http::HeaderValue, middleware};
 use identity::{handlers, state::AppState};
+use reqwest::{
+    Method,
+    header::{
+        ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, AUTHORIZATION, CONNECTION, CONTENT_LENGTH,
+        CONTENT_TYPE, COOKIE, HOST, ORIGIN, REFERER, UPGRADE, USER_AGENT,
+    },
+};
 use tokio::net::TcpListener;
-use tower_http::trace::{DefaultMakeSpan, TraceLayer};
+use tower_http::{
+    cors::{Any, CorsLayer},
+    trace::{DefaultMakeSpan, TraceLayer},
+};
 use tracing::{Level, level_filters::LevelFilter};
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -59,6 +69,30 @@ async fn main() -> std::io::Result<()> {
 
     subscriber.init();
 
+    let cors_layer = CorsLayer::new()
+        .allow_origin([
+            "http://localhost:5173".parse::<HeaderValue>().unwrap(),
+            "http://localhost.com".parse::<HeaderValue>().unwrap(),
+        ])
+        .allow_credentials(true)
+        .allow_headers([
+            AUTHORIZATION,
+            COOKIE,
+            ACCEPT,
+            CONTENT_TYPE,
+            HOST,
+            USER_AGENT,
+            ACCEPT_ENCODING,
+            CONNECTION,
+            UPGRADE,
+            CONTENT_LENGTH,
+            CONNECTION,
+            ACCEPT_LANGUAGE,
+            REFERER,
+            ORIGIN,
+        ])
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS, Method::DELETE]);
+
     let app_state = AppState::new().await.unwrap();
     let session_manager = Arc::new(SessionManager::new(
         ScyllaSessionStore::new(
@@ -85,7 +119,8 @@ async fn main() -> std::io::Result<()> {
         .layer(middleware::from_fn(
             session_middleware::<ScyllaSessionStore>,
         ))
-        .layer(Extension(session_manager));
+        .layer(Extension(session_manager))
+        .layer(cors_layer);
 
     let listener = TcpListener::bind(
         #[cfg(not(debug_assertions))]

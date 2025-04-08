@@ -40,7 +40,7 @@ impl<S: SessionStore> SessionManager<S> {
             cookie_path: "/".to_string(),
             cookie_secure: true,
             cookie_http_only: true,
-            cookie_same_site: SameSite::Lax,
+            cookie_same_site: SameSite::None,
         }
     }
 
