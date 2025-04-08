@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { Root } from "./routes/root";
 import { Messages } from "./routes";
 import { SignIn } from "./routes/signin";
+import { SignUp } from "./routes/signup";
 
 export default createBrowserRouter([
   {
@@ -15,6 +16,10 @@ export default createBrowserRouter([
       {
         path: "/sign-in",
         Component: SignIn
+      },
+      {
+        path: "/sign-up",
+        Component: SignUp
       }
     ]
   }

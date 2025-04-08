@@ -1,7 +1,7 @@
 import { Button, FormControl, FormHelperText, InputLabel, Link, OutlinedInput, Stack, Typography } from "@mui/material";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Link as RouterLink, useNavigate } from "react-router"
-import { signin } from "../lib/cases/auth";
+import { signIn } from "../lib/cases/auth";
 import { useState } from "react";
 
 interface Inputs {
@@ -21,7 +21,7 @@ export function SignIn() {
 
   const submit: SubmitHandler<Inputs> = data => {
     setIsLoading(true);
-    signin(data).then(success => {
+    signIn(data).then(success => {
       if (success) navigate("/");
       else console.warn("todo: show error");
     });
@@ -30,7 +30,7 @@ export function SignIn() {
   return <Stack justifyContent="center" alignItems="center" sx={{ height: "100%" }}>
     <Stack justifyContent="center" sx={{ width: "100%" }} maxWidth="500px">
       <Typography variant="h3" component="h1">Sign in</Typography>
-      <Typography variant="subtitle1">Don't have an account? <RouterLink to="/signup"><Link component="span">Create one.</Link></RouterLink></Typography>
+      <Typography variant="subtitle1">Don't have an account? <RouterLink to="/sign-up"><Link component="span">Create one.</Link></RouterLink></Typography>
       <Stack component="form" autoComplete="off" onSubmit={handleSubmit(submit)}>
         <FormControl error={!!errors.username} required variant="outlined" margin="normal">
           <InputLabel htmlFor="username">Username</InputLabel>

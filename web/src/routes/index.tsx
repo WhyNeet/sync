@@ -63,8 +63,11 @@ export function Messages() {
       </> : <>
         <Stack sx={{ height: "100%" }} alignItems="center" justifyContent="center">
           <Typography variant="h3" component="h1">You are not signed in.</Typography>
-          <Typography variant="subtitle1" mb={4}>Sign in to access Sync.</Typography>
-          <Link to="/sign-in"><Button variant="contained">Sign In</Button></Link>
+          <Typography variant="subtitle1" mb={4}>Sign in or create account to access Sync.</Typography>
+          <Stack direction="row" gap={1}>
+            <Link to="/sign-in"><Button variant="contained">Sign In</Button></Link>
+            <Link to="/sign-up"><Button variant="outlined">Sign Up</Button></Link>
+          </Stack>
         </Stack>
       </>}
     </Stack>
