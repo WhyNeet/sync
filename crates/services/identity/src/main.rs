@@ -14,7 +14,7 @@ use reqwest::{
 };
 use tokio::net::TcpListener;
 use tower_http::{
-    cors::{Any, CorsLayer},
+    cors::CorsLayer,
     trace::{DefaultMakeSpan, TraceLayer},
 };
 use tracing::{Level, level_filters::LevelFilter};
@@ -31,6 +31,7 @@ async fn main() -> std::io::Result<()> {
                 "OX0w0kHPRcxE3oD1Y2vw0Kfa8ZYLvgDt2oq/78yJFYJBev2uiuAKyKUrQgUP94UppV33bm+DKLYpDcFhwBE6UA==",
             );
             std::env::set_var("USERS_SERVICE_URI", "localhost:8080");
+            std::env::set_var("KAFKA_BROKER_URI", "localhost:9092");
         };
     };
 
