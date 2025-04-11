@@ -6,3 +6,4 @@ metadata:
 data:
   scylla.uri: messaging-scylladb
   identity-provider.uri: identity-service.identity.svc.cluster.local:8080
+  kafka.uri: kafka-controller-0.kafka-controller-headless.kafka.svc.cluster.local:9092
