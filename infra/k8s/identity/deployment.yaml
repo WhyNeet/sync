@@ -50,6 +50,11 @@ spec:
                 secretKeyRef:
                   name: identity-secret
                   key: session.signing.key
+            - name: KAFKA_BROKER_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: identity-config
+                  key: kafka.uri
           livenessProbe:
             httpGet:
               path: /health
