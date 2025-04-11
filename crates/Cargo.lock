@@ -1113,6 +1113,7 @@ dependencies = [
  "flume",
  "futures",
  "mac_address",
+ "rdkafka",
  "scylla",
  "serde",
  "serde_json",

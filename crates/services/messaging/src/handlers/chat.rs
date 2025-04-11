@@ -9,6 +9,7 @@ use axum::{
     response::IntoResponse,
 };
 use chrono::DateTime;
+use common::events::{EventKind, auth::AuthEvent};
 use futures::{SinkExt, StreamExt};
 use scylla::value::CqlTimeuuid;
 use serde_json::json;
@@ -122,8 +123,9 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>, session: Sessi
         }
     });
 
+    let recv_channel = app.channel_tx.subscribe();
     let mut recv_task = tokio::spawn(async move {
-        let mut rx = app.channel_tx.subscribe();
+        let mut rx = recv_channel;
         while let Ok(message) = rx.recv().await {
             sender
                 .lock()
@@ -139,11 +141,28 @@ async fn handle_socket(mut socket: WebSocket, app: Arc<AppState>, session: Sessi
         }
     });
 
+    let stop_task = tokio::spawn(async move {
+        'events: while let Ok(event) = app.auth_event_rx.recv_async().await {
+            match event.kind() {
+                EventKind::AuthEvent(event)
+                    if *event == AuthEvent::SessionTerminated(session.0.id) =>
+                {
+                    break 'events;
+                }
+                _ => continue,
+            }
+        }
+    });
+
     tokio::select! {
       _ = &mut send_task => {
         recv_task.abort();
       },
       _ = &mut recv_task => {
+        send_task.abort();
+      },
+      _ = stop_task => {
+        recv_task.abort();
         send_task.abort();
       }
     }

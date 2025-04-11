@@ -20,7 +20,8 @@ async fn main() -> std::io::Result<()> {
                 "SESSION_SIGNING_KEY",
                 "OX0w0kHPRcxE3oD1Y2vw0Kfa8ZYLvgDt2oq/78yJFYJBev2uiuAKyKUrQgUP94UppV33bm+DKLYpDcFhwBE6UA==",
             );
-            std::env::set_var("IDENTITY_PROVIDER_URI", "localhost:8081")
+            std::env::set_var("IDENTITY_PROVIDER_URI", "localhost:8081");
+            std::env::set_var("KAFKA_BROKER_URI", "localhost:9092");
         };
     };
 

@@ -25,7 +25,6 @@ impl SessionStore for ProviderSessionStore {
         session_id: &uuid::Uuid,
     ) -> Result<crate::session::data::SessionData, Box<dyn std::error::Error>> {
         let uri = self.endpoint.join("/internal/validate")?;
-        println!("validating session externally: {uri}");
         let response = self
             .client
             .post(uri)
